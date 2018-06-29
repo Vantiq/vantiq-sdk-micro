@@ -35,5 +35,7 @@ void test_patch()
         free(rsURI);
         vme_free_result(result);
     }
+    free(config.vantiq_url);
+    free(config.vantiq_token);
     vme_teardown(vme);
 }

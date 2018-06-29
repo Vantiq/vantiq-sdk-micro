@@ -10,6 +10,11 @@ where running a VM much less an edge node is not possible. The target are those 
 C-based applications. The example used in the design for the SDK is a set-top box where you might have as little as 1MB
 of memory available.
 
+### Support Platforms
+
+Currently, the library has been build / tested on Mac OSX. We believe it should compile and run fine on Linux platforms.
+It will not currently build on Windows. 
+
 ## Repository Structure
 
 * **src/vme** - contains the c sources and header files that comprise the entire library. the compile down to both a
@@ -45,15 +50,32 @@ use. The first order of business will likely to have a Makefile based build in p
 
 ### Build Dependencies 
 
-It depends on libcurl to handle the lion's share of HTTP protocol work. libcurl works with OPENSSL to deal with one-way
+libvme depends on libcurl to handle the lion's share of HTTP protocol work. libcurl works with OPENSSL to deal with one-way
 SSL / TLS requirements imposed by connecting to the VANTIQ system. We assume that targetted micro environments will have 
 access to these widely used tools.
 
+Further, in order to run the tests, the project expects the CUnit framework to be installed on the machine. 
+
+Both dependencies can be installed for Mac OS X via `brew install curl` and `brew install CUnit`
+
+## Testing
+The regressions defined for libvme are all integration tests. i.e. they require a running VANTIQ server as well as some
+types and rules. Here are the steps required:
+* import the project defined in the vme.zip file under testFiles/input.
+* generate a long lived access token in the namespace where the project was imported. [Create Access Token](https://dev.vantiq.com/docs/system/resourceguide/index.html#create-access-token)
+in the documentation.
+* edit the file config.properties under testFiles/input to set the values for the VANTIQ server URL as well as the
+generated access token.
+* run the command `gradlew build` at the root of the project.
 ## Examples
 
 ### Authentication
 * authenticate to the VANTIQ server, then tear down the connection:
 ```c
+    vmeconfig_t config;
+    if (vme_parse_config("config.properties", &config) == -1) {
+        ...
+    }
     VME vme = vme_init(config.vantiq_url, config.vantiq_token, 1);
     ...
     vme_teardown(vme);
@@ -154,4 +176,11 @@ in the documentation.
         // institute pay-cuts as well
     }
     vme_free_result(result);
+```
+### publish events
+* publish a discovery json document to a topic
+```c
+        /* the topic can be anything--no need to pre-define */
+        vme_result_t *result = vme_publish(vme, "/GiantTelco/Smarthome/Discovery", fullMsg->data, fullMsg->len);
+        vme_free_result(result);
 ```

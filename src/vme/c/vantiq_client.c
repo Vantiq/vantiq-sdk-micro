@@ -15,8 +15,6 @@
 #define AUTH_URL_PATH "/authenticate"
 #define JSON_CONTENTTYPE "Content-Type: application/json"
 
-#define log_null(x)
-
 #define VC_MAGIC 0x07
 
 #define REST_API "/api/v"
@@ -207,7 +205,9 @@ vantiq_client_t *vc_init(const char *url, const char *authToken, uint8_t apiVers
     vc->magic = VC_MAGIC;
     vc->api_version = apiVersion;
     // we'll always want the authorization header
-    vc->http_hdrs = curl_slist_append(NULL, create_auth_hdr(vc, authToken));
+    char *authHdr = create_auth_hdr(vc, authToken);
+    vc->http_hdrs = curl_slist_append(NULL, authHdr);
+    free(authHdr);
 
     size_t len = strlen(url);
     if (url[len-1] == '/') {
@@ -220,7 +220,7 @@ vantiq_client_t *vc_init(const char *url, const char *authToken, uint8_t apiVers
     }
     
     /* results buffer allocated and grown as needed */
-    vc->recv_buf = buf_alloc();
+    vc->recv_buf = vmebuf_alloc();
     
     /* call is not thread safe -- might need a different place to call this */
     CURLcode res = curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -247,7 +247,6 @@ vantiq_client_t *vc_init(const char *url, const char *authToken, uint8_t apiVers
     snprintf(authUrl, len, "%s%s", vc->server_url, AUTH_URL_PATH);
     curl_easy_setopt(vc->curl, CURLOPT_URL, authUrl);
     curl_easy_setopt(vc->curl, CURLOPT_HTTPGET, 1L);
-
 
     CURLcode result = curl_easy_perform(vc->curl);
 

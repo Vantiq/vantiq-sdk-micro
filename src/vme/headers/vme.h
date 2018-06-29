@@ -146,7 +146,7 @@ typedef struct
     char  *data;       // insert bytes here
 } vmebuf_t;
 
-#define buf_alloc() vmebuf_ensure_size(NULL, 0)
+#define vmebuf_alloc() vmebuf_ensure_size(NULL, 0)
 
 vmebuf_t *vmebuf_truncate(vmebuf_t *buf);
 vmebuf_t *vmebuf_ensure_size(vmebuf_t *buf, size_t len);

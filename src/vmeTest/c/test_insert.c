@@ -16,7 +16,8 @@ void trim_trailing_wspace(char *buffer)
     buffer[len+1] = 0;
 }
 
-void test_inserts() {
+void test_inserts()
+{
     char buffer[MAXLINELENGTH];
 
     vmeconfig_t config;
@@ -27,7 +28,7 @@ void test_inserts() {
     FILE *jsonFile = fopen("dataset.json", "r");
     char *rsURI = vme_build_custom_rsuri(vme, "VME_Test", NULL);
 
-    vmebuf_t *msg = buf_alloc();
+    vmebuf_t *msg = vmebuf_alloc();
     vmebuf_push(msg, '[');
 
     int count = 1;
@@ -79,6 +80,9 @@ void test_inserts() {
     free(rsURI);
     vmebuf_dealloc(msg);
     fclose(jsonFile);
+
+    free(config.vantiq_url);
+    free(config.vantiq_token);
     vme_teardown(vme);
     CU_PASS("test inserts");
 }

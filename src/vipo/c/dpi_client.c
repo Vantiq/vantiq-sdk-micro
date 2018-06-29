@@ -16,6 +16,7 @@
 #include <arpa/inet.h>
 
 #include "dpi_client.h"
+#include "vme.h"
 #include "log.h"
 
 #define INITBUFSIZE 512 // max number of bytes we can get at once
@@ -132,17 +133,11 @@ dpi_client_t *init_dpi_inet_client(char *port)
     return dpic;
 }
 
-typedef struct {
-    size_t len;
-    size_t limit;
-    char *data;
-} vmebuf_t;
-
 char *fetch_discovery_msg(dpi_client_t *dpic)
 {
     size_t numbytes;
     fd_set read_fds;
-    vmebuf_t  buf;
+    vmebuf_t  *buf = vmebuf_ensure_size(NULL, INITBUFSIZE);
 
     struct timeval timeout;
     timeout.tv_sec = 300;
@@ -161,35 +156,35 @@ char *fetch_discovery_msg(dpi_client_t *dpic)
         log_info("client: error on select %s", strerror(errno));
         return NULL;
     }
-    buf.data = malloc(INITBUFSIZE);
-    buf.limit = INITBUFSIZE;
 
-    size_t avail = buf.limit - buf.len;
-    while ((numbytes = recv(dpic->socket_fd, (&buf.data[0]) + buf.len, avail, 0)) == avail) {
-        buf.len += numbytes;
-        buf.data = realloc(buf.data, buf.limit*2);
-        buf.limit = buf.limit*2;
-        avail = buf.limit - buf.len;
+    size_t avail = buf->limit - buf->len;
+    while ((numbytes = recv(dpic->socket_fd, (&buf->data[0]) + buf->len, avail, 0)) == avail) {
+        buf->len += numbytes;
+        buf->data = realloc(buf->data, buf->limit*2);
+        buf->limit = buf->limit*2;
+        avail = buf->limit - buf->len;
     }
 
     if (numbytes == -1) {
         log_syserr("recv");
         /* NOTREACHED */
-    } else if (numbytes == 0 && buf.len == 0) {
+    } else if (numbytes == 0 && buf->len == 0) {
         log_info("server has closed the connection...\n");
         return NULL;
-    } else if (numbytes == sizeof(PROT_EOT)-1 && memcmp(buf.data, PROT_EOT, sizeof(PROT_EOT)) == 0){
+    } else if (numbytes == sizeof(PROT_EOT)-1 && memcmp(buf->data, PROT_EOT, sizeof(PROT_EOT)) == 0){
         log_info("received end of transmission");
         return NULL;
     } else {
-        buf.len += numbytes;
-        buf.data[buf.len] = '\0';
-        log_debug("client: received '%s'\n", buf.data);
+        buf->len += numbytes;
+        buf->data[buf->len] = '\0';
+        log_debug("client: received '%s'\n", buf->data);
         numbytes = send(dpic->socket_fd, PROT_ACK, sizeof(PROT_ACK)-1, 0);
         if (numbytes == -1) {
             log_syserr("error sending acknowledgement");
         }
     }
 
-    return buf.data;
+    char *data = vmebuf_tostr(buf);
+    vmebuf_dealloc(buf);
+    return data;
 }

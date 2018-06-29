@@ -14,7 +14,8 @@ size_t select_callback(void *state, const char *data, size_t size)
     return size;
 }
 
-void test_selects() {
+void test_selects()
+{
     vmeconfig_t config;
     if (vme_parse_config("config.properties", &config) == -1)
         CU_ASSERT_EQUAL_FATAL(-1, 3);
@@ -110,6 +111,8 @@ void test_selects() {
         vme_free_result(result);
     }
 
+    free(config.vantiq_url);
+    free(config.vantiq_token);
     vme_teardown(vme);
     CU_PASS("test selects");
 }

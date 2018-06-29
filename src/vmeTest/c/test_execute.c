@@ -37,5 +37,7 @@ void test_execute()
         vme_free_result(result);
     }
 
+    free(config.vantiq_token);
+    free(config.vantiq_url);
     vme_teardown(vme);
 }

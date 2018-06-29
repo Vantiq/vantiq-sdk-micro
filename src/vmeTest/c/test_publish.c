@@ -20,7 +20,7 @@ void test_publish()
     int fd = open("discovery.json", O_RDONLY);
     CU_ASSERT_TRUE_FATAL(fd > 0);
 
-    vmebuf_t *fullMsg = buf_alloc();
+    vmebuf_t *fullMsg = vmebuf_alloc();
     char buf[256];
     size_t nbytes = 0;
     /* read discovery file */
@@ -36,5 +36,7 @@ void test_publish()
         vme_free_result(result);
     }
 
+    free(config.vantiq_url);
+    free(config.vantiq_token);
     vme_teardown(vme);
 }

@@ -28,5 +28,7 @@ void test_deletes() {
     CU_ASSERT_PTR_NULL(result->vme_error_msg);
 
     vme_teardown(vme);
+    free(config.vantiq_token);
+    free(config.vantiq_url);
     CU_PASS("test deletes");
 }
