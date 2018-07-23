@@ -1,19 +1,16 @@
 # vantiq-sdk-micro
 
-###### This is new and subject to wild changes until the dust from construction settles. Exercise caution...
-![Image of Construction](Under_construction.gif)
-
 ## Overview
 
-The VANTIQ micro edition sdk (VME) exists to enable the system to participate in extremely restrictive environments 
-where running a VM much less an edge node is not possible. The target are those systems that can only accomodate compact
+The VANTIQ micro edition sdk (VME) exists to enable the system to participate in restrictive environments 
+where running a VM much less an edge node is not possible. The targets are those systems that can only accomodate compact
 C-based applications. The example used in the design for the SDK is a set-top box where you might have as little as 1MB
 of memory available.
 
 ### Support Platforms
 
-Currently, the library has been build / tested on Mac OSX. We believe it should compile and run fine on Linux platforms.
-It will not currently build on Windows. 
+Currently, the library has been built / tested on Mac OSX and Linux. We believe it should compile and run fine on Windows
+with the Windows subsystem for Linux . 
 
 ## Repository Structure
 
@@ -31,8 +28,8 @@ that help drive regression tests.
 
 ## Building
 
-The library currently builds on a Mac / Mac OS X. The SDK uses gradle to build and run CUnit framework tests. Gradle is
-not currently adept at working with native applications and libraries. This choice might change. For now the usual set
+The library currently builds on Linux and Mac / Mac OS X. The SDK uses gradle to build and run CUnit framework tests. Gradle is
+not currently adept at working with native applications and libraries so this choice might change. For now the usual set
 of gradle targets will work as expected:
 * gradlew clean
 * gradlew assemble
@@ -40,9 +37,7 @@ of gradle targets will work as expected:
 
 the latter builds the library and runs the CUnit tests. Note that "gradle tests" does not work.
 
-the build.gradle script uses 'c' and 'cunit-test-suite' gradle
-plugins. these force the build script into heavy use of the newish "model space" gradle methodology making typically
-easy things difficult. this is in part why "gradle tests" is not yet supported.
+the build.gradle script uses 'c' and 'cunit-test-suite' gradle plugins. 
 
 At present we lack the ability cross compile / test the code on the
 targetted "micro" environemnts. We expect we will work with the field to address the inevitable issues as the SDK sees

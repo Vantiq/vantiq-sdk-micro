@@ -162,8 +162,15 @@ typedef struct {
     char *dpi_socket_path;
     char *vantiq_url;
     char *vantiq_token;
+    char *log_level;
 } vmeconfig_t;
 
 int vme_parse_config(const char *path, vmeconfig_t *config);
+/*
+ * one of: "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"
+ *
+ * log messages are currently sent to stderr only
+ */
+void vme_set_log_level(const char *logLevel);
 
 #endif /* vantiq_vme_h */

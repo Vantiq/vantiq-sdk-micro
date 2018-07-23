@@ -6,6 +6,7 @@
 #include <assert.h>
 
 #include "vme.h"
+#include "log.h"
 
 #define MAXLINELENGTH 1024
 #define MAXKEYLENGTH 80
@@ -14,6 +15,7 @@
 #define VANTIQ_URL "VANTIQ_BASEURL"
 #define VANTIQ_TOKEN "VANTIQTOKEN"
 #define DPI_SOCKET_PATH "DPISOCKETPATH"
+#define LOG_LEVEL "LOG_LEVEL"
 
 int set_config_param(vmeconfig_t *config, const char *key, const char *value);
 
@@ -75,6 +77,12 @@ int vme_parse_config(const char *path, vmeconfig_t *config) {
     configFile = fopen(path, "r");
     if (configFile) {
         parsedVals = parseKeysVals(configFile, config);
+        /* this is a global VME setting at present. should be per client */
+        if (config->log_level) {
+            vme_set_log_level(config->log_level);
+        } else {
+            log_set_level(LOG_WARN);
+        }
         fclose(configFile);
     } else {
         return -1;
@@ -112,6 +120,8 @@ int set_config_param(vmeconfig_t *config, const char *key, const char *value)
             config->vantiq_url = strdup(value);
 	} else if (cmp_strings(key, VANTIQ_TOKEN)) {
 		config->vantiq_token = strdup(value);
+    } else if (cmp_strings(key, LOG_LEVEL)) {
+        config->log_level = strdup(value);
 	} else {
         return 0;
 	}

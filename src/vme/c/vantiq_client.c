@@ -10,6 +10,7 @@
 #include <curl/curl.h>
 
 #include "vantiq_client.h"
+#include "log.h"
 
 #define AUTH_HDR_KEY "Authorization: Bearer "
 #define AUTH_URL_PATH "/authenticate"
@@ -138,6 +139,7 @@ char *create_url(vantiq_client_t *vc, const char *rsURI, struct param *params)
     }
     char *strUrl = vmebuf_tostr(urlbuf);
     vmebuf_dealloc(urlbuf);
+    log_debug("using %s to interact with the VANTIQ server", strUrl);
     return strUrl;
 }
 
@@ -153,10 +155,11 @@ void common_curl_setup(vantiq_client_t *vc)
     /* Provide CA Certs from http://curl.haxx.se/docs/caextract.html */
 //    curl_easy_setopt(vc->curl, CURLOPT_CAINFO, "ca-bundle.crt");
     
-    /* get verbose debug output please */
-    curl_easy_setopt(vc->curl, CURLOPT_VERBOSE, 0L);
+    /* get verbose debug output if log level set at DEBUG or TRACE */
+    if (log_get_level() <= LOG_DEBUG)
+        curl_easy_setopt(vc->curl, CURLOPT_VERBOSE, 1L);
     
-    /* ask curl to let see the respons body when we get a 400*/
+    /* ask curl to let us see the respons body when we get a 400 */
     curl_easy_setopt(vc->curl, CURLOPT_FAILONERROR, 0L);
     
     curl_easy_setopt(vc->curl, CURLOPT_HTTPHEADER, vc->http_hdrs);
@@ -206,6 +209,7 @@ vantiq_client_t *vc_init(const char *url, const char *authToken, uint8_t apiVers
     vc->api_version = apiVersion;
     // we'll always want the authorization header
     char *authHdr = create_auth_hdr(vc, authToken);
+    log_debug("using %s as the authorization header", authHdr);
     vc->http_hdrs = curl_slist_append(NULL, authHdr);
     free(authHdr);
 
@@ -248,6 +252,7 @@ vantiq_client_t *vc_init(const char *url, const char *authToken, uint8_t apiVers
     curl_easy_setopt(vc->curl, CURLOPT_URL, authUrl);
     curl_easy_setopt(vc->curl, CURLOPT_HTTPGET, 1L);
 
+    log_debug("authenticating to vantiq: %s", authUrl);
     CURLcode result = curl_easy_perform(vc->curl);
 
     /* the rest of our operations expect JSON back */
@@ -263,6 +268,7 @@ vantiq_client_t *vc_init(const char *url, const char *authToken, uint8_t apiVers
 
     if (result != CURLE_OK && httpCode != 200) {
         //sprintf(errorBuf, "failed to authenticate to VANTIQ");
+        log_debug("authentication to vantiq failed: %ul", httpCode);
         return NULL;
     }
     return vc;
@@ -460,6 +466,7 @@ vme_result_t *vc_query(vantiq_client_t *vc, const char *rsURI, const char *qPara
 
 void vc_teardown(vantiq_client_t *vc)
 {
+    log_debug("tearing down vantiq client %s", vc->server_url);
     vc->magic = 0;
     if (vc->recv_buf != NULL) {
         vmebuf_dealloc(vc->recv_buf);
