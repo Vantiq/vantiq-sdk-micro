@@ -7,3 +7,5 @@ clean:
 	(cd src/vmeTest; make clean)
 	(cd src/vipo; make clean)
 
+test: all
+	(cd src/vmeTest; ./vmetest)
