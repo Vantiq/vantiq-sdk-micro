@@ -7,7 +7,7 @@ where running an edge node is not possible. The targets are those systems that c
 C-based applications. The example used in the design for the SDK is a set-top box where you might have as little as 1MB
 of memory available.
 
-### Support Platforms
+### Supported Platforms
 
 Currently, the library has been built / tested on Mac OSX and Linux. We believe it should compile and run on Windows
 with the Windows subsystem for Linux though this has not been verified.
@@ -16,6 +16,7 @@ with the Windows subsystem for Linux though this has not been verified.
 
 * **src/vme** - contains the c sources and header files that comprise the entire library. the compile down to both a
 libvme.a as well as its dynamically loaded equivalent (libvme.dylib on OS X, libvme.so on Linux)
+* **src/vmeTest** - contains the c sources and header files that integrate with CUnit to run regression tests against the SDK.
 * **src/vipo** - contains the sources for a prototype application built atop libvme that connects to a simulated Deep
 Packet Inspector (DPI) to request any / all device discovery data and then publishes that resulting JSON discovery data
 to the VANTIQ server. It can use either inet or local sockets to fetch the data, and relies on libvme to leverage HTTPS
@@ -34,7 +35,7 @@ The set of targets includes:
 the latter first builds the library and then runs the CUnit tests.
 
 At present we lack the ability cross compile / test the code on the
-targetted "micro" environemnts. We expect we will work with the field to address issues arising as the SDK sees
+targeted "micro" environemnts. We expect we will work with the field to address issues arising as the SDK sees
 use.
 
 ### Build Dependencies 
@@ -61,7 +62,7 @@ types and rules. Here are the steps required:
 * import the project defined in the vme.zip file under testFiles/input.
 * generate a long lived access token in the namespace where the project was imported. [Create Access Token](https://dev.vantiq.com/docs/system/resourceguide/index.html#create-access-token)
 in the documentation.
-* edit the file config.properties under testFiles/input to set the values for the VANTIQ server URL as well as the
+* edit the file config.properties under src/vmeTest to set the values for the VANTIQ server URL as well as the
 generated access token.
 * run the command `make test` at the root of the project.
 ## Examples

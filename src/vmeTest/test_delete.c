@@ -5,7 +5,6 @@
 #include "vme.h"
 
 void test_deletes() {
-    fflush(stdout);
     vmeconfig_t config;
     if (vme_parse_config("config.properties", &config) == -1)
         CU_ASSERT_EQUAL(-1, 3);

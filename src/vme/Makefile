@@ -11,7 +11,7 @@ clean:
 	$(RM) $(OBJS)
 
 libvme.a: $(OBJS)
-	$(AR) rcs $@ $^ $(LDFLAGS)
+	$(AR) rcs $@ $^
 
 libvme.so: $(OBJS)
 	$(CC) -shared -o $@ $^ $(LDFLAGS)

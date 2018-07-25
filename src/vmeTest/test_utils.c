@@ -32,8 +32,6 @@ char *find_instance_id(vme_result_t *result)
 
 cJSON *_find_instance_prop(cJSON *instance, const char *propName, int remove)
 {
-    //printf("searching for %s in object:\n%s\n", propName, cJSON_Print(instance));
-    fflush(stdout);
     cJSON *parent;
     if (instance->type == cJSON_Array) {
         parent = instance->child;

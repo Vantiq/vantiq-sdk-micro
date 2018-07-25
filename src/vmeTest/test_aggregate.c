@@ -30,14 +30,6 @@ void test_aggregates()
         result = vme_aggregate(vme, rsURI, pipeline);
         CU_ASSERT_PTR_NULL(result->vme_error_msg);
 
-        // if (result->vme_error_msg == NULL) {
-        //     cJSON *json = cJSON_Parse((const char *)result->vme_json_data);
-        //     printf("Aggregate pipeline on Invoice:\n%s\n",  cJSON_Print(json));
-        //     cJSON_Delete(json);
-        // } else {
-        //     fprintf(stderr, "aggregate pipeline against VME_Test failed with %s\n", result->vme_error_msg);
-        // }
-        // fflush(stdout); fflush(stderr);
         vme_free_result(result);
     }
 
