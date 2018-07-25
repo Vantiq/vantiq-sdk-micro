@@ -6,6 +6,9 @@
 bin/
 gen/
 out/
+*.o
+*.a
+*.so
 
 # Gradle files
 .gradle/
