@@ -3,55 +3,57 @@
 ## Overview
 
 The VANTIQ micro edition sdk (VME) exists to enable the system to participate in restrictive environments 
-where running a VM much less an edge node is not possible. The targets are those systems that can only accomodate compact
+where running an edge node is not possible. The targets are those systems that can only accomodate compact
 C-based applications. The example used in the design for the SDK is a set-top box where you might have as little as 1MB
 of memory available.
 
 ### Support Platforms
 
-Currently, the library has been built / tested on Mac OSX and Linux. We believe it should compile and run fine on Windows
-with the Windows subsystem for Linux . 
+Currently, the library has been built / tested on Mac OSX and Linux. We believe it should compile and run on Windows
+with the Windows subsystem for Linux though this has not been verified.
 
 ## Repository Structure
 
 * **src/vme** - contains the c sources and header files that comprise the entire library. the compile down to both a
-libvme.a as well as its dynamically loaded equivalent (libvme.dylib on OS X)
+libvme.a as well as its dynamically loaded equivalent (libvme.dylib on OS X, libvme.so on Linux)
 * **src/vipo** - contains the sources for a prototype application built atop libvme that connects to a simulated Deep
 Packet Inspector (DPI) to request any / all device discovery data and then publishes that resulting JSON discovery data
 to the VANTIQ server. It can use either inet or local sockets to fetch the data, and relies on libvme to leverage HTTPS
 to connect to the VANTIQ system.
-* **src/dpisim** - a very simple minded DPI application. it reads "discovery" data from a file and sends whenever a
-connection is opened, then waits for an acknowledgement. currently, will send the same data 3 times before transmitting
-an EOT to end the transmission / close the connection.
 * **testFiles** - files used in unit and integration testing. there are some configuration files and generated datasets
 that help drive regression tests.
 
 ## Building
 
-The library currently builds on Linux and Mac / Mac OS X. The SDK uses gradle to build and run CUnit framework tests. Gradle is
-not currently adept at working with native applications and libraries so this choice might change. For now the usual set
-of gradle targets will work as expected:
-* gradlew clean
-* gradlew assemble
-* gradelw build
+The library currently builds on Linux and Mac / Mac OS X. The SDK uses make to build and run CUnit framework tests.
+The set of targets includes:
+* make clean
+* make all
+* make test
 
-the latter builds the library and runs the CUnit tests. Note that "gradle tests" does not work.
-
-the build.gradle script uses 'c' and 'cunit-test-suite' gradle plugins. 
+the latter first builds the library and then runs the CUnit tests.
 
 At present we lack the ability cross compile / test the code on the
-targetted "micro" environemnts. We expect we will work with the field to address the inevitable issues as the SDK sees
-use. The first order of business will likely to have a Makefile based build in place.
+targetted "micro" environemnts. We expect we will work with the field to address issues arising as the SDK sees
+use.
 
 ### Build Dependencies 
 
-libvme depends on libcurl to handle the lion's share of HTTP protocol work. libcurl works with OPENSSL to deal with one-way
-SSL / TLS requirements imposed by connecting to the VANTIQ system. We assume that targetted micro environments will have 
+libvme depends on libcurl to handle the HTTP/S protocol work. libcurl works with OPENSSL to deal with one-way
+SSL / TLS requirements in connecting to the VANTIQ system. We assume that targeted micro environments will have
 access to these widely used tools.
 
 Further, in order to run the tests, the project expects the CUnit framework to be installed on the machine. 
 
-Both dependencies can be installed for Mac OS X via `brew install curl` and `brew install CUnit`
+All dependencies can be installed for Mac OS X via `brew install curl` and `brew install CUnit`. Similarly on Linux
+environments you should be able to use the appropriate package installer for this.
+
+## Configuration File
+
+libvme initialization allows for a path to a config file. At present the configuration lets you specify
+* **VANTIQ_BASEURL** - the URL to the VANTIQ server
+* **VANTIQTOKEN** - the VANTIQ access token that enables libvme applications to authenticate and login to a specific namespace
+* **LOG_LEVEL** - the logging level (one of TRACE, DEBUG, INFO, WARN, or ERROR)
 
 ## Testing
 The regressions defined for libvme are all integration tests. i.e. they require a running VANTIQ server as well as some
@@ -61,7 +63,7 @@ types and rules. Here are the steps required:
 in the documentation.
 * edit the file config.properties under testFiles/input to set the values for the VANTIQ server URL as well as the
 generated access token.
-* run the command `gradlew build` at the root of the project.
+* run the command `make test` at the root of the project.
 ## Examples
 
 ### Authentication
