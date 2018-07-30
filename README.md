@@ -14,7 +14,7 @@ with the Windows subsystem for Linux though this has not been verified.
 
 ## Repository Structure
 
-* **src/vme** - contains the c sources and header files that comprise the entire library. the compile down to both a
+* **src/vme** - contains the c sources and header files that comprise the entire library. They compile down to both a
 libvme.a as well as its dynamically loaded equivalent (libvme.dylib on OS X, libvme.so on Linux)
 * **src/vmeTest** - contains the c sources and header files that integrate with CUnit to run regression tests against the SDK.
 * **src/vipo** - contains the sources for a prototype application built atop libvme that connects to a simulated Deep
