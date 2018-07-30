@@ -7,7 +7,7 @@ where running an edge node is not possible. The targets are those systems that c
 C-based applications. The example used in the design for the SDK is a set-top box where you might have as little as 1MB
 of memory available.
 
-### Supported Platforms
+### Build Platforms
 
 Currently, the library has been built / tested on Mac OSX and Linux. We believe it should compile and run on Windows
 with the Windows subsystem for Linux though this has not been verified.
