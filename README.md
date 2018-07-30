@@ -34,10 +34,6 @@ The set of targets includes:
 
 the latter first builds the library and then runs the CUnit tests.
 
-At present we lack the ability cross compile / test the code on the
-targeted "micro" environemnts. We expect we will work with the field to address issues arising as the SDK sees
-use.
-
 ### Build Dependencies 
 
 libvme depends on libcurl to handle the HTTP/S protocol work. libcurl works with OPENSSL to deal with one-way
