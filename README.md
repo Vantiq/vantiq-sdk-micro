@@ -7,14 +7,14 @@ where running an edge node is not possible. The targets are those systems that c
 C-based applications. The example used in the design for the SDK is a set-top box where you might have as little as 1MB
 of memory available.
 
-### Supported Platforms
+### Build Platforms
 
 Currently, the library has been built / tested on Mac OSX and Linux. We believe it should compile and run on Windows
 with the Windows subsystem for Linux though this has not been verified.
 
 ## Repository Structure
 
-* **src/vme** - contains the c sources and header files that comprise the entire library. the compile down to both a
+* **src/vme** - contains the c sources and header files that comprise the entire library. They compile down to both a
 libvme.a as well as its dynamically loaded equivalent (libvme.dylib on OS X, libvme.so on Linux)
 * **src/vmeTest** - contains the c sources and header files that integrate with CUnit to run regression tests against the SDK.
 * **src/vipo** - contains the sources for a prototype application built atop libvme that connects to a simulated Deep
@@ -33,10 +33,6 @@ The set of targets includes:
 * make test
 
 the latter first builds the library and then runs the CUnit tests.
-
-At present we lack the ability cross compile / test the code on the
-targeted "micro" environemnts. We expect we will work with the field to address issues arising as the SDK sees
-use.
 
 ### Build Dependencies 
 
