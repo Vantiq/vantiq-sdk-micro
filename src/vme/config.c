@@ -1,3 +1,10 @@
+//
+//  config.c
+//  
+//  configuration for the vme library
+//
+//  Copyright © 2018 VANTIQ. All rights reserved.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>

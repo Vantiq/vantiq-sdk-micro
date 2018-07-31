@@ -16,18 +16,18 @@
 #include <stdio.h>
 #include <CUnit/Automated.h>
 #include <CUnit/Basic.h>
-#include "gradle_cunit_register.h"
+#include "cunit_register.h"
 
 /*
- *  Generated launcher for CUnit tests. All tests and suites must be registered in a single method:
- *      void gradle_cunit_register();
+ *  Launcher for CUnit tests. All tests and suites must be registered in a single method:
+ *      void cunit_register();
  */
 int main() {
     int failureCount;
 
     CU_initialize_registry();
 
-    gradle_cunit_register();
+    cunit_register();
 
     CU_list_tests_to_file();
     CU_automated_run_tests();

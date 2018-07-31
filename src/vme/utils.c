@@ -1,9 +1,9 @@
 //
 //  utils.c
-//  vipo
 //
-//  Created by Jeffrey Meredith on 6/19/18.
-//  Copyright © 2018 Jeffrey Meredith. All rights reserved.
+//  common utility functionality
+//
+//  Copyright © 2018 VANTIQ. All rights reserved.
 //
 
 #include <stdlib.h>

@@ -1,3 +1,7 @@
+//  dpi_client.h
+//
+//  Copyright © 2018 VANTIQ. All rights reserved.
+
 #ifndef VIPO_DPI_CLIENT_H
 #define VIPO_DPI_CLIENT_H
 

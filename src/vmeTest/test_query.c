@@ -1,3 +1,7 @@
+//  test_query.c
+//
+//  Copyright © 2018 VANTIQ. All rights reserved.
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>

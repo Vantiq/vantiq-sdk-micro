@@ -1,3 +1,11 @@
+//
+// vme.c VANTIQ Micro Edition
+//
+//  a C-based library providing HTTPS connectivity and access to services
+//  provided by the VANTIQ system
+//
+//  Copyright © 2018 VANTIQ. All rights reserved.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,12 +16,11 @@
 
 /*
  * vme_init --
- *      url - vantiq server URL. e.g. https://dev.vantiq.com or https://api.vantiq.com
+ *
+ *      url - vantiq server URL. e.g. https://api.vantiq.com
  *      authToken - access token created via Modelo. this should grant "long lived" access to the server namespace
  *          in which it was created.
- *      apiVersion - the version of the REST API that the server supports. this probably should *not* be a parameter
- *          but rather something vme figures out as well as figuring out if it can successfully parley the the server
- *          supported version. will add this to the TODO list.
+ *      apiVersion - the version of the REST API that the server supports.
  *
  * fire up an instance of VME. this amounts to trying the url / access token combination and see if we can successfully
  * authenticate to the VANTIQ server. Most (all) of that activity takes place in the vantiq client code. the role of
@@ -86,7 +93,7 @@ void vme_callback_state(VME vme, void *state)
  *
  *      internal "work horse" function for dealing with select requests.
  */
-vme_result_t *_select(VME vme, const char *rsURI, struct param *params)
+static vme_result_t *_select(VME vme, const char *rsURI, struct param *params)
 {
     vantiq_client_t *vc = vc_from_vme(vme);
     /* TODO: i18n */
@@ -100,22 +107,21 @@ vme_result_t *_select(VME vme, const char *rsURI, struct param *params)
 /*
  * vme_select_callback --
  *
- *      vme -handle returned from call to vme_init
+ *      vme - handle returned from call to vme_init
  *      rsURI - path to the resource we are selecting from
  *      propSpecs - a specification of properties of interest (what we return from the select query)
  *      where - where clause against the resource restricting the results that come back
  *      sortSpec - how to order the results.
- *      page / limit - a poor persons query cursor. you can ask the server for results one page at a time. when a page
+ *      page / limit - a query cursor. you can ask the server for results one page at a time. when a page
  *          is given, you get the next 'limit' worth of results. when page is not given (set to 0) you get exactly
  *          'limit' results and no more.
  *
  *          e.g. page / limit:  1/1000, 2/1000, 3/1000 in 3 separate calls gives you 3 consecutive result sets of 1000
  *          instances (assuming the result set has 3000 or more results in it). once you hit the end of the result set
- *          the call returns an empty array: "[]"
+ *          the call returns an empty JSON array: "[]"
  *
  *      callback - a function pointer that we invoke as each chunk of "raw" data is returned from the server. the chunks
- *          do not respect JSON object boundaries in any way and are just a chuk of bytes (16434 from what i've seen
- *          although i imagine this may vary)
+ *          do not respect JSON object boundaries in any way and are just a chunk of bytes
  */
 vme_result_t *vme_select_callback(VME vme,
                                   const char *rsURI, // fully qualified URI to a resource
@@ -207,6 +213,8 @@ vme_result_t *vme_select_count(VME vme, const char *rsURI, const char *propSpecs
  *      rsURI - path to the resource we are selecting from
  *      propSpecs - a specification of properties of interest (what we return from the select query)
  *      where - where clause against the resource restricting the results that come back
+ *          for more information on select see the reference: https://api.vantiq.com/docs/system/api/index.html#select
+ *          for more information on the where parameter: https://api.vantiq.com/docs/system/api/index.html#where-parameter
  *      sortSpec - how to order the results.
  *      page / limit - a poor persons query cursor. you can ask the server for results one page at a time. when a page
  *          is given, you get the next 'limit' worth of results. when page is not given (set to 0) you get exactly
@@ -242,7 +250,7 @@ vme_result_t *vme_select(VME vme,
  *      where - where clause against the resource restricting the results that come back
  *      count - place a count of the instances deleted in the result
  */
-vme_result_t *_delete(VME vme, const char *rsURI, const char *where, int count)
+static vme_result_t *_delete(VME vme, const char *rsURI, const char *where, int count)
 {
     vantiq_client_t *vc = vc_from_vme(vme);
     /* TODO: i18n */
@@ -427,7 +435,9 @@ void vme_free_result(vme_result_t *result)
  *
  *      vme - handle returned from call to vme_init
  *      rsURI - path to the resource we are inserting into
- *      json - specification of what data in the type to "patch". for patch details see : http://jsonpatch.com/
+ *      json - specification of what data in the type to "patch".
+ *
+ * for patch details see : http://jsonpatch.com/
  */
 vme_result_t *vme_patch(VME vme, const char *rsURI, const char *json)
 {
@@ -446,6 +456,8 @@ vme_result_t *vme_patch(VME vme, const char *rsURI, const char *json)
  *
  *      RETURN an allocated string containing the full path to the specified user defined resource:
  *          /resources/custom/<rs name>[/<rs id>]
+ *
+ * there is extensive documentation for resource URIs at https://api.vantiq.com/docs/system/resourceguide/index.html
  */
 char *vme_build_custom_rsuri(VME vme, const char *rsName, const char *rsID)
 {
@@ -464,6 +476,9 @@ char *vme_build_custom_rsuri(VME vme, const char *rsName, const char *rsID)
  *
  *      RETURN an allocated string containing the full path to the specified user defined resource:
  *          /resources/topics/a/b/c
+ *
+ * there is extensive documentation for resource URIs at https://api.vantiq.com/docs/system/resourceguide/index.html
+ * REST API specific resource URI details afer here: https://api.vantiq.com/docs/system/api/index.html#rest-over-http-binding
  */
 char *vme_build_system_rsuri(VME vme, vme_rstype_t systype, const char *rsName, const char *rsID)
 {
@@ -474,7 +489,10 @@ char *vme_build_system_rsuri(VME vme, vme_rstype_t systype, const char *rsName, 
 }
 
 /*
- * what does this do?
+ * vme_query_source --
+ *
+ *      Performs a query against the specified source. The parameters for the
+ *      query are provided in the qParams parameter as a JSON document
  */
 vme_result_t *vme_query_source(VME vme, const char *sourceID, const char *qParams)
 {

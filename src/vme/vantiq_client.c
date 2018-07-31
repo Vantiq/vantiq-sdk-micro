@@ -1,3 +1,10 @@
+//
+//  vantiq_client.c
+//
+//  functions to encapsulate interactions with the VANTIQ server
+//
+//  Copyright © 2018 VANTIQ. All rights reserved.
+
 /*
  * encapsulate the logic for connecting to the vantiq server
  * and sending discovery messages
@@ -22,6 +29,11 @@
 
 vme_result_t *_putorpost(vantiq_client_t *vc, const char *rsURI, const vmebuf_t *msg, struct param *params);
 
+/*
+ * helper function building a singly linked list of parameters to add to the
+ * end of the REST API url. usage is pass in the current head of the parameters
+ * list (possibly NULL), then assign the returned result to be the new head.
+ */
 struct param *build_param(struct param *head, const char *key, const char *value)
 {
     struct param *p = malloc(sizeof(struct param));
@@ -31,6 +43,10 @@ struct param *build_param(struct param *head, const char *key, const char *value
     return p;
 }
 
+/*
+ * free a previously allocated singly linked list of url parameters. see
+ * build_params
+ */
 void free_params(struct param *params)
 {
     struct param *next;
@@ -57,6 +73,15 @@ char *create_auth_hdr(vantiq_client_t *vc, const char *token) {
 }
 
 #define COUNT_HEADER "X-Total-Count:"
+/*
+ * header_callback is a function invoked by libcurl when a response is received.
+ * you get a single call back for each response header returned by the server.
+ *
+ * buffer contains a single HTTP header name: value pair. for the purposes of
+ * libvme, we will sometimes received the count of results from the server in
+ * the form of the X-Total-Count: <n> response header. we need to parse that
+ * and record the returned count value in the vantiq client.
+ */
 static size_t header_callback(char *buffer, size_t size, size_t nitems, void *userdata)
 {
     vantiq_client_t *vc = (vantiq_client_t *)userdata;
@@ -74,6 +99,15 @@ static size_t header_callback(char *buffer, size_t size, size_t nitems, void *us
     return len;
 }
 
+/*
+ * the write_callback is invoked by libcurl when we are *downloading* data from
+ * the server typically via a GET request. the function's job is to buffer up
+ * enough space to copy the contents being received from the server. if the
+ * result data is chunked, this call back may be called multiple times.
+ *
+ * if the libvme user has specified that s/he wants control over this via their
+ * own callback, we pass the responsbility on to that function.
+ */
 static size_t
 write_callback(void *contents, size_t size, size_t nmemb, void *userp)
 {
@@ -89,6 +123,15 @@ write_callback(void *contents, size_t size, size_t nmemb, void *userp)
     return realsize;
 }
 
+/*
+ * the read_callback is invoked by libcurl when we are *uploading* data to
+ * the server typically via a POST or PUT request. the function's job is transfer
+ * size*nmemb bytes from user data to the buffer being sent (dest). if the sent
+ * data is chunked, this call back may be called multiple times.
+ *
+ * if the libvme user has specified that s/he wants control over this via their
+ * own callback, we pass the responsbility on to that function.
+ */
 static size_t read_callback(void *dest, size_t size, size_t nmemb, void *userp)
 {
     // todo: data rewind handling?
@@ -110,6 +153,10 @@ static size_t read_callback(void *dest, size_t size, size_t nmemb, void *userp)
 	return 0; /* no more data left to deliver */
 }
 
+/*
+ * construct a URL from the vantiq client, the resource URI and the URL
+ * parameters. the resulting string must be freed bvy the caller
+ */
 char *create_url(vantiq_client_t *vc, const char *rsURI, struct param *params)
 {
     size_t len = strlen(vc->server_url) + strlen(rsURI) + 1;
@@ -143,6 +190,10 @@ char *create_url(vantiq_client_t *vc, const char *rsURI, struct param *params)
     return strUrl;
 }
 
+/*
+ * there are number of curl options that we set for all requests we make to
+ * the VANTIQ server. we do all the common set up here
+ */
 void common_curl_setup(vantiq_client_t *vc)
 {
     curl_easy_reset(vc->curl);
@@ -152,7 +203,7 @@ void common_curl_setup(vantiq_client_t *vc)
     curl_easy_setopt(vc->curl, CURLOPT_SSL_VERIFYPEER , 1);
     curl_easy_setopt(vc->curl, CURLOPT_SSL_VERIFYHOST , 1);
 
-    /* Provide CA Certs from http://curl.haxx.se/docs/caextract.html */
+    /* could provide CA Certs from a locally downloaded certificate file */
 //    curl_easy_setopt(vc->curl, CURLOPT_CAINFO, "ca-bundle.crt");
     
     /* get verbose debug output if log level set at DEBUG or TRACE */
@@ -164,12 +215,12 @@ void common_curl_setup(vantiq_client_t *vc)
     
     curl_easy_setopt(vc->curl, CURLOPT_HTTPHEADER, vc->http_hdrs);
     
-    /* we want to use our own read function */
+    /* we want to use our own callback functions */
     curl_easy_setopt(vc->curl, CURLOPT_READFUNCTION, read_callback);
     curl_easy_setopt(vc->curl, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(vc->curl, CURLOPT_HEADERFUNCTION, header_callback);
     
-    /* pointer to pass to our read function */
+    /* user data to pass to our call back functions */
     curl_easy_setopt(vc->curl, CURLOPT_READDATA, vc);
     curl_easy_setopt(vc->curl, CURLOPT_WRITEDATA, vc);
     curl_easy_setopt(vc->curl, CURLOPT_HEADERDATA, vc);
@@ -180,7 +231,8 @@ void common_curl_setup(vantiq_client_t *vc)
 }
 
 /*
- * sanity check that we have a valid client
+ * sanity check that we have a valid client - i.e. try to ensure that we are
+ * looking at a valid vantiq client struct and that it was not torn down already
  */
 int vc_is_valid(vantiq_client_t *vc)
 {
@@ -256,7 +308,6 @@ vantiq_client_t *vc_init(const char *url, const char *authToken, uint8_t apiVers
     CURLcode result = curl_easy_perform(vc->curl);
 
     /* the rest of our operations expect JSON back */
-    // TODO: might not want this for every operation
     vc->http_hdrs = curl_slist_append(vc->http_hdrs, JSON_CONTENTTYPE);
     // Disable Expect: 100-continue
     vc->http_hdrs = curl_slist_append(vc->http_hdrs, "Expect:");
@@ -274,6 +325,13 @@ vantiq_client_t *vc_init(const char *url, const char *authToken, uint8_t apiVers
     return vc;
 }
 
+/*
+ * factor out the code that deals with HTTP responses via curl. there are set of
+ * common activities we undertake for all requests. deal with protocol errors,
+ * server side errors, bad request indications as well as valid results.
+ *
+ * the returned result is allocated memory that must be freed by the caller
+ */
 vme_result_t *prepare_result(CURLcode resCode, const char *protErrMsg, vantiq_client_t *vc)
 {
     assert(protErrMsg != NULL);
@@ -307,6 +365,9 @@ vme_result_t *prepare_result(CURLcode resCode, const char *protErrMsg, vantiq_cl
     return result;
 }
 
+/*
+ * send an HTTP PUT request
+ */
 vme_result_t *vc_put(vantiq_client_t *vc, const char *rsURI, const vmebuf_t *msg, struct param *params)
 {
     common_curl_setup(vc);
@@ -316,6 +377,9 @@ vme_result_t *vc_put(vantiq_client_t *vc, const char *rsURI, const vmebuf_t *msg
     return _putorpost(vc, rsURI, msg, params);
 }
 
+/*
+ * send an HTTP POST request
+ */
 vme_result_t *vc_post(vantiq_client_t *vc, const char *rsURI, const vmebuf_t *msg, struct param *params)
 {
     common_curl_setup(vc);
@@ -326,12 +390,12 @@ vme_result_t *vc_post(vantiq_client_t *vc, const char *rsURI, const vmebuf_t *ms
 }
 
 /*
- * underpinning for PUT and POST calls. call is responsible for setting the
- * verb prior to calling...
+ * underpinning for PUT and POST calls. caller is responsible for setting the
+ * verb prior to calling...this function creates the target url, unleashes curl
+ * to do the lower level protocol work, then deals with the results.
  */
 vme_result_t *_putorpost(vantiq_client_t *vc, const char *rsURI, const vmebuf_t *msg, struct param *params)
 {
-    /* make sure we specify json content type */
     char *topicUrl = create_url(vc, rsURI, params);
     curl_easy_setopt(vc->curl, CURLOPT_URL, topicUrl);
 
@@ -376,6 +440,12 @@ vme_result_t *_putorpost(vantiq_client_t *vc, const char *rsURI, const vmebuf_t 
     return result;
 }
 
+/*
+ * underpinning for the GET or DELETE HTTP requests. the caller must set the
+ * verb prior to calling. this function creates and sets the target url,
+ * unleashes curl to perform the lower level protocol work, then deals with
+ * the results.
+ */
 vme_result_t *_getordelete(vantiq_client_t *vc, const char *rsURI, struct param *params)
 {
     char *url = create_url(vc, rsURI, params);
@@ -394,6 +464,9 @@ vme_result_t *_getordelete(vantiq_client_t *vc, const char *rsURI, struct param 
     return result;
 }
 
+/*
+ * send an HTTP GET request
+ */
 vme_result_t *vc_get(vantiq_client_t *vc, const char *rsURI, struct param *params)
 {
     common_curl_setup(vc);
@@ -401,6 +474,9 @@ vme_result_t *vc_get(vantiq_client_t *vc, const char *rsURI, struct param *param
     return _getordelete(vc, rsURI, params);
 }
 
+/*
+ * send an HTTP DELETE request
+ */
 vme_result_t *vc_delete(vantiq_client_t *vc, const char *rsURI, struct param *params)
 {
     common_curl_setup(vc);
@@ -408,13 +484,17 @@ vme_result_t *vc_delete(vantiq_client_t *vc, const char *rsURI, struct param *pa
     return _getordelete(vc, rsURI, params);
 }
 
+/*
+ * send an HTTP PATCH request, in VANTIQ's REST API this is used to update
+ * json documents in place. the resource uri typically points to a user defined
+ * data type. the json parameter is a patch specification
+ */
 vme_result_t *vc_patch(vantiq_client_t *vc, const char *rsURI, const char *json)
 {
     common_curl_setup(vc);
     curl_easy_setopt(vc->curl, CURLOPT_CUSTOMREQUEST, "PATCH");
     curl_easy_setopt(vc->curl, CURLOPT_POSTFIELDS, json);
 
-    /* make sure we specify json content type */
     char *topicUrl = create_url(vc, rsURI, NULL);
     curl_easy_setopt(vc->curl, CURLOPT_URL, topicUrl);
     vmebuf_truncate(vc->recv_buf);
@@ -433,6 +513,9 @@ vme_result_t *vc_patch(vantiq_client_t *vc, const char *rsURI, const char *json)
     return result;
 }
 
+/*
+ * perform mongo db style aggregation pipelining. 
+ */
 vme_result_t *vc_aggregate(vantiq_client_t *vc, const char *rsURI, struct param *params)
 {
     common_curl_setup(vc);
@@ -441,6 +524,9 @@ vme_result_t *vc_aggregate(vantiq_client_t *vc, const char *rsURI, struct param 
     return result;
 }
 
+/*
+ * execute the specified (via rsURI) VANTIQ procedure.
+ */
 vme_result_t *vc_execute(vantiq_client_t *vc, const char *rsURI, const char *argsDoc)
 {
     vmebuf_t *msg = vmebuf_ensure_size(NULL, strlen(argsDoc));
@@ -453,6 +539,9 @@ vme_result_t *vc_execute(vantiq_client_t *vc, const char *rsURI, const char *arg
     return result;
 }
 
+/*
+ * execute a query against a VANTIQ source specified in the rsURI.
+ */
 vme_result_t *vc_query(vantiq_client_t *vc, const char *rsURI, const char *qParams)
 {
     vmebuf_t *msg = vmebuf_ensure_size(NULL, strlen(qParams));
@@ -464,6 +553,10 @@ vme_result_t *vc_query(vantiq_client_t *vc, const char *rsURI, const char *qPara
     return result;
 }
 
+/*
+ * de-allocate resources associated with a VANTIQ client struct. upon returning
+ * from this call the client can no longer be used for server interactions
+ */
 void vc_teardown(vantiq_client_t *vc)
 {
     log_debug("tearing down vantiq client %s", vc->server_url);

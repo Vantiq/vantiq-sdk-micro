@@ -1,3 +1,7 @@
+// vme_test.h
+//
+//  Copyright © 2018 VANTIQ. All rights reserved.
+
 #include "vme.h"
 #include "cjson.h"
 

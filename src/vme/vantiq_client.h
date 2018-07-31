@@ -1,3 +1,7 @@
+//  vantiq_client.h
+//
+//  Copyright © 2018 VANTIQ. All rights reserved.
+
 #ifndef VANTIQ_CLIENT_H
 #define VANTIQ_CLIENT_H
 

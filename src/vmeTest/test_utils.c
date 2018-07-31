@@ -2,7 +2,7 @@
 //  test_utils.c
 //
 //  Created by Jeffrey Meredith on 6/26/18.
-//  Copyright © 2018 Jeffrey Meredith. All rights reserved.
+//  Copyright © 2018 VANTIQ. All rights reserved.
 //
 #include <assert.h>
 #include <string.h>

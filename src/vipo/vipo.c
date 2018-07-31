@@ -1,3 +1,11 @@
+//
+//  vipo.c 
+//
+//  a C-based prototype application that delivers device discovery
+//  data provided by a 3rd party packet inspector to the VANTIQ server
+//
+//  Copyright © 2018 VANTIQ. All rights reserved.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

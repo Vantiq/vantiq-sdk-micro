@@ -1,3 +1,7 @@
+//  dpi_client.c
+//
+//  Copyright © 2018 VANTIQ. All rights reserved.
+
 /*
  ** client.c -- a socket client for the deep packet inspector
  */

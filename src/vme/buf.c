@@ -1,4 +1,9 @@
-/* buf: a sized buffer type. */
+// buf.c
+//
+// a dynamically expanding buffer
+//
+//  Copyright © 2018 VANTIQ. All rights reserved.
+
 
 #include <stdlib.h>
 #include <string.h>
