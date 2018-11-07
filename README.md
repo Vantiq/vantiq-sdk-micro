@@ -10,18 +10,18 @@ of memory available.
 ### Build Platforms
 
 Currently, the library has been built / tested on Mac OSX and Linux. We believe it should compile and run on Windows
-with the Windows subsystem for Linux though this has not been verified.
+with the Windows subsystem for Linux, though this has not been verified.
 
 ## Repository Structure
 
 * **src/vme** - contains the c sources and header files that comprise the entire library. They compile down to both a
-libvme.a as well as its dynamically loaded equivalent (libvme.dylib on OS X, libvme.so on Linux)
+_libvme.a_ as well as its dynamically loaded equivalent (_libvme.dylib_ on OS X, _libvme.so_ on Linux)
 * **src/vmeTest** - contains the c sources and header files that integrate with CUnit to run regression tests against the SDK.
-* **src/vipo** - contains the sources for a prototype application built atop libvme that connects to a simulated Deep
+* **src/vipo** - contains the sources for a prototype application built atop _libvme_ that connects to a simulated Deep
 Packet Inspector (DPI) to request any / all device discovery data and then publishes that resulting JSON discovery data
-to the VANTIQ server. It can use either inet or local sockets to fetch the data, and relies on libvme to leverage HTTPS
+to the VANTIQ server. It can use either inet or local sockets to fetch the data, and relies on _libvme_ to leverage HTTPS
 to connect to the VANTIQ system.
-* **testFiles** - files used in unit and integration testing. there are some configuration files and generated datasets
+* **testFiles** - files used in unit and integration testing. There are some configuration files and generated datasets
 that help drive regression tests.
 
 ## Building
@@ -36,14 +36,14 @@ the latter first builds the library and then runs the CUnit tests.
 
 ### Build Dependencies 
 
-libvme depends on libcurl to handle the HTTP/S protocol work. libcurl works with OPENSSL to deal with one-way
+_libvme_ depends on libcurl to handle the HTTP/S protocol work. libcurl works with OPENSSL to deal with one-way
 SSL / TLS requirements in connecting to the VANTIQ system. We assume that targeted micro environments will have
 access to these widely used tools.
 
 Further, in order to run the tests, the project expects the CUnit framework to be installed on the machine. 
 
 All dependencies can be installed for Mac OS X via `brew install curl` and `brew install CUnit`. Similarly on Linux
-environments you should be able to use the appropriate package installer for this.
+environments you should be able to use the appropriate package installer for those dependencies.
 
 ## Configuration File
 
@@ -53,12 +53,12 @@ libvme initialization allows for a path to a config file. At present the configu
 * **LOG_LEVEL** - the logging level (one of TRACE, DEBUG, INFO, WARN, or ERROR)
 
 ## Testing
-The regressions defined for libvme are all integration tests. i.e. they require a running VANTIQ server as well as some
-types and rules. Here are the steps required:
-* import the project defined in the vme.zip file under testFiles/input.
-* generate a long lived access token in the namespace where the project was imported. [Create Access Token](https://dev.vantiq.com/docs/system/resourceguide/index.html#create-access-token)
+The regressions defined for libvme are all integration tests. That is, they require a running VANTIQ server as well as some
+pre-created types and rules. Here are the steps required:
+* import the project defined in the _vme.zip_ file under _testFiles/input_.
+* generate a long lived access token in the namespace where the project was imported. See: [Create Access Token](https://dev.vantiq.com/docs/system/resourceguide/index.html#create-access-token)
 in the documentation.
-* edit the file config.properties under src/vmeTest to set the values for the VANTIQ server URL as well as the
+* edit the file _config.properties_ under _src/vmeTest_ to set the values for the VANTIQ server URL as well as the
 generated access token.
 * run the command `make test` at the root of the project.
 ## Examples
@@ -75,13 +75,14 @@ generated access token.
     vme_teardown(vme);
 ```
 
-every application should book-end their use of VANTIQ with these two calls. the token is a long-lived access token that
+Every application should book-end their use of VANTIQ with these two calls. The token is a long-lived access token that
 must be generated from with the desired namespace via the VANTIQ UI. See: [Create Access Token](https://dev.vantiq.com/docs/system/resourceguide/index.html#create-access-token)
 in the documentation.
 
 ### selects
 * select 1 instance from the Employees type where dept == Marketing:
 ```c
+    char *rsURI = vme_build_custom_rsuri(vme, "Employees", NULL);
     result = vme_select_one(vme, rsURI, "[\"id\"]", "{ \"dept\" : \"Marketing\"}");
 ```
 * select full name and SSN for 100 instances from the Employees type:
