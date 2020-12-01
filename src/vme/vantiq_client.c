@@ -89,7 +89,7 @@ static size_t header_callback(char *buffer, size_t size, size_t nitems, void *us
     size_t headerNameSz = sizeof(COUNT_HEADER)-1;
     /* received header is nitems * size long in 'buffer' NOT ZERO TERMINATED */
     /* 'userdata' is set with CURLOPT_HEADERDATA */
-    if (len > headerNameSz && memcmp(buffer, COUNT_HEADER, headerNameSz) == 0) {
+    if (len > headerNameSz && strncasecmp(buffer, COUNT_HEADER, headerNameSz) == 0) {
         char countBuf[32];
         int pos = (int)headerNameSz;
         memcpy(countBuf, buffer + pos, len - pos);
@@ -269,7 +269,7 @@ vantiq_client_t *vc_init(const char *url, const char *authToken, uint8_t apiVers
     if (url[len-1] == '/') {
         // trim trailing slash
         vc->server_url = (char *)malloc(len);
-        strncpy(vc->server_url, url, len-1);
+        memcpy(vc->server_url, url, len-1);
         vc->server_url[len-1] = '\0';
     } else {
         vc->server_url = strdup(url);
